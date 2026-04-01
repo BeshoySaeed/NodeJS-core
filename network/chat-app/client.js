@@ -38,7 +38,9 @@ const socket = net.createConnection({
             await moveCursor(0, -1);
             // clear the current line that the cursor is in
             await clearLine(0);
-            socket.write(message);
+
+
+            socket.write(encrypt(message));
         } catch (err) {
             // Exit cleanly on Ctrl+C
             socket.end();
@@ -55,7 +57,11 @@ const socket = net.createConnection({
         await moveCursor(0, -1);
         // clear that line that cursor just moved into
         await clearLine(0);
-        console.log(data.toString("utf-8"));
+        const message = data.toString().split(" : ");
+        const sender = message[0];
+        const encryptedMessage = message[1];
+        const decryptedMessage = decrypt(encryptedMessage);
+        console.log(`${sender} : ${decryptedMessage.toString()}`);
 
         ask();
     });
@@ -71,3 +77,12 @@ socket.on("close", () => {
 socket.on("error", (err) => {
     console.log(err.message);
 })
+
+
+const encrypt = (message) => {
+    return Buffer.from(message.split("").reverse().join(""), "utf-8");
+}
+
+const decrypt = (encryptedMessage) => {
+    return Buffer.from(encryptedMessage.toString("utf-8").split("").reverse().join(""), "utf-8");
+}
